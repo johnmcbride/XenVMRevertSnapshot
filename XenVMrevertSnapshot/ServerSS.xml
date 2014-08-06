@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Servers>
+  <Server IPAddress="[XenServer Address]" Username="root" Password="[Xen User Password]" Port="80">
+    <VM Name="[Name of VM that your want to revert]">
+      <RevertTo SSName="[Name of snapshot to revert to]"></RevertTo>
+    </VM>
+  </Server>
+</Servers>
