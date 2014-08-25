@@ -13,6 +13,11 @@ namespace XenVMrevertSnapshot
         static void Main(string[] args)
         {
             string _configFile = null;
+            string _smtpServer = null;
+            bool _emailNotificationsEnabled = false;
+            List<string> _notifiedReceipients = null;
+            int _smtpPort = 25;
+
             //defining the log file name. Log file will be in the same location as the exe'
 
             string _logFileName = string.Format(@"{1}\revertss_run_{0}.txt", DateTime.Now.ToString("MMddyyyy_hhmmss"), Environment.CurrentDirectory);
@@ -47,8 +52,16 @@ namespace XenVMrevertSnapshot
                 _logFile.WriteLine(string.Format("{0},Loading configuration file", DateTime.Now));
                 _configDoc.Load(_configFile);
                 _logFile.WriteLine(string.Format("{0},Obtaining servers", DateTime.Now));
+
+                #region Read the SMTP configuration element
+                XmlNode _emailNotificationNode = _configDoc.SelectSingleNode("/Configuration/EmailNotification");
+                _smtpServer = _emailNotificationNode.Attributes.GetNamedItem("SMTPServer").Value;
+                _emailNotificationsEnabled = Convert.ToBoolean(_emailNotificationNode.Attributes.GetNamedItem("Enabled").Value);
+                _smtpPort = Convert.ToInt32(_emailNotificationNode.Attributes.GetNamedItem("Port").Value);
+                #endregion
+
                 //define the xpath for pulling out each server element from the xml file
-                XmlNodeList _servers = _configDoc.SelectNodes("/Servers/Server");
+                XmlNodeList _servers = _configDoc.SelectNodes("/Configuration/Servers/Server");
                 //loop through each server element found
                 foreach (XmlNode _server in _servers)
                 {
@@ -133,6 +146,36 @@ namespace XenVMrevertSnapshot
                 }
                 //close the File
                 _logFile.Close();
+                #region Email Notification (If enabled)
+                if ( _emailNotificationsEnabled)
+                {
+                    try
+                    {
+                        //read the logfile
+                        string _logInfo = string.Format("Log file location = {0}\n\n", _logFile);
+                        _logInfo += System.IO.File.ReadAllText(_logFileName);
+
+                        System.Net.Mail.SmtpClient _client = new System.Net.Mail.SmtpClient(_smtpServer, _smtpPort);
+                        System.Net.Mail.MailMessage _logMessage = new System.Net.Mail.MailMessage();
+                        _logMessage.Subject = string.Format("Log file for Snapshot Revert for {0}", DateTime.Now.ToString("MMddyyyy_hhmmss"));
+                        _logMessage.IsBodyHtml = true;
+                        _logMessage.Body = _logInfo;
+                        foreach (XmlNode _emailAddressNode in _emailNotificationNode.SelectNodes("/Configuration/EmailNotification/Notify"))
+                        {
+                            _logMessage.To.Add(_emailAddressNode.Value);
+                        }
+                        _client.Send(_logMessage);
+                    }
+                    catch (System.Exception error)
+                    {
+                        //log the error to the logfile
+                        _logFile = File.AppendText(_logFileName);
+                        _logFile.WriteLine(string.Format("{0},Unexpected error occurred: '{1}'", DateTime.Now, error.StackTrace));
+                        _logFile.Close();
+                    }
+                    
+                }
+                #endregion
             }
             catch (Exception generalError)
             {
