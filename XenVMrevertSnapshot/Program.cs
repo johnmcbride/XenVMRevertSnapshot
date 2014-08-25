@@ -13,6 +13,9 @@ namespace XenVMrevertSnapshot
         static void Main(string[] args)
         {
             string _configFile = null;
+            string _smtpServer = null;
+            bool _emailNotifyEnabled = false;
+
             //defining the log file name. Log file will be in the same location as the exe'
 
             string _logFileName = string.Format(@"{1}\revertss_run_{0}.txt", DateTime.Now.ToString("MMddyyyy_hhmmss"), Environment.CurrentDirectory);
@@ -47,6 +50,13 @@ namespace XenVMrevertSnapshot
                 _logFile.WriteLine(string.Format("{0},Loading configuration file", DateTime.Now));
                 _configDoc.Load(_configFile);
                 _logFile.WriteLine(string.Format("{0},Obtaining servers", DateTime.Now));
+
+                #region Get SMTP Info
+                XmlNode _smtpInfoNode = _configDoc.SelectSingleNode("/Configuration/EmailNotification");
+                _smtpServer = _smtpInfoNode.Attributes.GetNamedItem("Enabled").Value;
+                _emailNotifyEnabled = Convert.ToBoolean(_smtpInfoNode.Attributes.GetNamedItem("SMTPServer").Value);
+                #endregion
+
                 //define the xpath for pulling out each server element from the xml file
                 XmlNodeList _servers = _configDoc.SelectNodes("/Servers/Server");
                 //loop through each server element found
@@ -133,6 +143,13 @@ namespace XenVMrevertSnapshot
                 }
                 //close the File
                 _logFile.Close();
+
+                #region Notify via email (if necessary)
+                if ( _emailNotifyEnabled)
+                {
+                    System.Net.Mail.SmtpClient _smtpClient = new System.Net.Mail.SmtpClient()
+                }
+                #endregion
             }
             catch (Exception generalError)
             {
