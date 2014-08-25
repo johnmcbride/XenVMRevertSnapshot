@@ -20,7 +20,7 @@ The definition of the file is as follows.
 <Configuration>
   <EmailNotification Enabled="[true,false]" SMTPServer="[Your SMTP Server]" Port="25">
     <!-- You can have multiple Notify elements -->
-    <Notify>address="[Email address to send log to]"</Notify>
+    <Notify>[Email address to send log to]</Notify>
   </EmailNotification>
   <Servers>
     <Server IPAddress="[XenServer Address]" Username="root" Password="[Xen User Password]" Port="80">
