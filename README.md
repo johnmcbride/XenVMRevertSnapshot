@@ -41,7 +41,7 @@ You will also need to add you SMTP server to the config file. Update the &lt;SMT
 
 For each recipient you would like to notify you will add a &lt;Notify> element with the email address of recipient as the text of the element. You can have multiple &lt;Notify> elements. 
 
-For Example:&lt;Notify>address="test@test.com"&lt;/Notify>
+For Example:&lt;Notify>test@test.com&lt;/Notify>
 
 
 #####Server/Snapshot Information
